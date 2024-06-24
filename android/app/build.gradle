@@ -1,0 +1,61 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // Apply the Flutter Gradle Plugin after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
+android {
+    compileSdkVersion flutter.compileSdkVersion.toInteger()
+
+    defaultConfig {
+        applicationId "com.example.pdf_eader"
+        minSdkVersion flutter.minSdkVersion.toInteger()
+        targetSdkVersion flutter.targetSdkVersion.toInteger()
+        versionCode localProperties.getProperty("flutter.versionCode")?.toInteger() ?: 1
+        versionName localProperties.getProperty("flutter.versionName") ?: "1.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        debug {
+            keyAlias 'my-key-alias'
+            keyPassword '7815678'
+            storeFile file('C:\\XMWJJ\\pdf_eader\\my-release-key.jks')
+            storePassword '7815678'
+        }
+        release {
+            keyAlias 'my-key-alias'
+            keyPassword '7815678'
+            storeFile file('C:\\XMWJJ\\pdf_eader\\my-release-key.jks')
+            storePassword '7815678'
+        }
+    }
+
+    buildTypes {
+        release {
+            // Configure signing for release build
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+        }
+        debug {
+            // Configure signing for debug build
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}

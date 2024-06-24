@@ -1,0 +1,30 @@
+name: pdf_eader_hjr
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  syncfusion_flutter_pdfviewer: ^26.1.38
+  file_picker: ^8.0.5
+  path_provider: ^2.1.3
+  provider: ^6.1.2
+  shared_preferences: ^2.2.3
+  cupertino_icons: ^1.0.6
+  flutter_launcher_icons: ^0.13.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+
+flutter:
+  uses-material-design: true
+
+
