@@ -23,12 +23,12 @@ class ThemeProvider extends ChangeNotifier {
   Color get backgroundColor => _backgroundColor;
 
   void setNightMode() {
-    _backgroundColor = Colors.yellow[100]!;
+    _backgroundColor = Colors.yellow;
     notifyListeners();
   }
 
   void setDayMode() {
-    _backgroundColor = Colors.grey[100]!;
+    _backgroundColor = Colors.white;
     notifyListeners();
   }
 }
@@ -83,7 +83,7 @@ class _DirectoryPageState extends State<DirectoryPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('文件已保存到：$directoryPath'),
-            duration: Duration(seconds: 9),
+            duration: Duration(seconds: 3),
           ),
         );
       });
@@ -259,6 +259,7 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
   int _totalPages = 0;
   int _currentPage = 0;
   bool _isLoaded = false;
+  double _zoomLevel = 1.0;
 
   @override
   void initState() {
@@ -270,10 +271,12 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
   Future<void> _loadLastPage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int lastPage = prefs.getInt('${widget.filePath}_lastPage') ?? 1;
-    _pdfViewerController.jumpToPage(lastPage);
-    setState(() {
-      _currentPage = lastPage;
-      _isLoaded = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _pdfViewerController.jumpToPage(lastPage);
+      setState(() {
+        _currentPage = lastPage;
+        _isLoaded = true;
+      });
     });
   }
 
@@ -315,24 +318,47 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
             Center(child: CircularProgressIndicator())
           else
             Expanded(
-              child: SfPdfViewer.file(
-                File(widget.filePath),
-                controller: _pdfViewerController,
-                onDocumentLoaded: (details) {
-                  setState(() {
-                    _totalPages = details.document.pages.count;
-                  });
-                },
-                onPageChanged: (details) {
-                  setState(() {
-                    _currentPage = details.newPageNumber;
-                  });
-                },
-                canShowScrollHead: true,
-                canShowScrollStatus: true,
-                pageSpacing: 5.0,
+              child: InteractiveViewer(
+                panEnabled: true, // 允许拖动
+                scaleEnabled: true, // 允许缩放
+                child: SfPdfViewer.file(
+                  File(widget.filePath),
+                  controller: _pdfViewerController,
+                  onDocumentLoaded: (details) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      setState(() {
+                        _totalPages = details.document.pages.count;
+                      });
+                    });
+                  },
+                  onPageChanged: (details) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      setState(() {
+                        _currentPage = details.newPageNumber;
+                      });
+                    });
+                  },
+                  canShowScrollHead: true,
+                  canShowScrollStatus: true,
+                  pageSpacing: 5.0,
+                  enableDoubleTapZooming: true,
+                  initialZoomLevel: _zoomLevel,
+                ),
               ),
             ),
+          Slider(
+            value: _zoomLevel,
+            min: 1.0,
+            max: 10.0,
+            divisions: 18,
+            label: 'Zoom: ${_zoomLevel.toStringAsFixed(1)}x',
+            onChanged: (value) {
+              setState(() {
+                _zoomLevel = value;
+              });
+              _pdfViewerController.zoomLevel = _zoomLevel;
+            },
+          ),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             color: Colors.grey[200],
@@ -446,6 +472,7 @@ class ChangeBackgroundPage extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
+            leading: Icon(Icons.wb_sunny),
             title: Text('白天模式'),
             onTap: () {
               Provider.of<ThemeProvider>(context, listen: false).setDayMode();
@@ -453,6 +480,7 @@ class ChangeBackgroundPage extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: Icon(Icons.nights_stay),
             title: Text('夜晚模式'),
             onTap: () {
               Provider.of<ThemeProvider>(context, listen: false).setNightMode();
